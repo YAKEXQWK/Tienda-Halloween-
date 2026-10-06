@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎃 Tienda y Minijuegos de Halloween 🦇</title>
+    <style>
+        :root {
+            --bg-color: #09090b;
+            --text-color: #f8fafc;
+            --accent-color: #7c3aed;
+            --box-bg: #18181b;
+            --success-color: #10b981;
+            --lock-color: #f59e0b;
+            --font-main: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+            padding: 10px;
+            box-sizing: border-box;
+            background-image: radial-gradient(circle at 50% 20%, #2e1065 0%, #09090b 80%);
+        }
+
+        h1, h2 { margin: 8px 0; text-align: center; color: #f59e0b; text-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .active-screen { display: flex; flex-direction: column; align-items: center; }
+
+        /* MENÚ PRINCIPAL */
+        #header-menu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        .contador-boletos-menu {
+            background: #18181b;
+            border: 2px solid #f59e0b;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        .icono-tienda {
+            font-size: 2.2em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            filter: drop-shadow(0 0 8px #f59e0b);
+        }
+        .icono-tienda:hover { transform: scale(1.1); }
+
+        .grid-juegos-3 {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .cuadro-juego-largo {
+            background-color: var(--box-bg);
+            border: 2px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 1.2em;
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
+        }
+
+        .cuadro-juego-largo:hover {
+            background-color: #2e1065;
+            transform: scale(1.02);
+        }
+
+        /* TIENDA DE HALLOWEEN */
+        .tienda-container {
+            background: #18181b;
+            border: 3px solid #f59e0b;
+            border-radius: 16px;
+            padding: 15px;
+            width: 100%;
+            max-width: 380px;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+            margin-top: 10px;
+        }
+
+        .item-tienda {
+            background: #27272a;
+            border: 1px solid #3f3f46;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+        }
+
+        .btn-comprar {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-comprar:active { background: #059669; }
+
+        .btn-retirarse {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 12px;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+        }
+        .btn-retirarse:active { background: #dc2626; }
+
+        /* BURBUJA DE MENSAJE */
+        .burbuja {
+            position: fixed;
+            bottom: 15px;
+            background: #18181b;
+            color: #f8fafc;
+            padding: 10px 15px;
+            border-radius: 15px;
+            border: 2px solid #7c3aed;
+            max-width: 280px;
+            display: none;
+            z-index: 1000;
+            font-size: 0.85em;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.6);
+        }
+
+        /* PANELES DE MINIJUEGOS */
+        .minijuego-panel {
+            background: rgba(9, 9, 11, 0.98);
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .mg-btn-salir { background: #ef4444; margin-top: 15px; padding: 8px 20px; border-radius: 5px; border:none; color:white; cursor:pointer; font-weight: bold;}
+
+        .circulo-col { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; cursor: pointer; display:inline-block; margin: 3px; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+        [data-color='red'] { background: #ef4444; }
+        [data-color='yellow'] { background: #f59e0b; }
+        [data-color='brown'] { background: #92400e; }
+        [data-color='blue'] { background: #3b82f6; }
+        [data-color='black'] { background: #111827; border-color: #6b7280; }
+        [data-color='white'] { background: #f8fafc; }
+        [data-color='green'] { background: #10b981; }
+        [data-color='orange'] { background: #f97316; }
+
+        .laberinto-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 32px);
+            grid-template-rows: repeat(8, 32px);
+            gap: 2px;
+            background: #090d16;
+            border: 3px solid #7c3aed;
+            padding: 5px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+        }
+        .lab-celda {
+            width: 32px; height: 32px;
+            background: #1e1e24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            border-radius: 4px;
+        }
+        .lab-pared { background: #0f0f13; border: 1px dashed #27272a; }
+
+        .t-btn {
+            background: #27272a; border: none; color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: bold;
+        }
+        .t-btn:active { background: #52525b; }
+    </style>
+</head>
+<body>
+
+    <!-- MENÚ PRINCIPAL -->
+    <div id="pantalla-menu" class="screen active-screen">
+        <div id="header-menu">
+            <div class="contador-boletos-menu">🎟️ Boletos: <span id="lbl-boletos">0</span></div>
+            <div class="icono-tienda" onclick="abrirTienda()" title="Tienda de Halloween">🏬</div>
+        </div>
+        
+        <h2>🎃 HALLOWEEN ARCADE 🦇</h2>
+        <p style="font-size: 0.8em; color: #a1a1aa; margin-top:0;">¡Juega, acumula boletos y canjea tus premios!</p>
+        
+        <div class="grid-juegos-3">
+            <div class="cuadro-juego-largo" onclick="abrirMinijuego(1)">
+                <span>🌈 Memoria de Colores</span>
+                <span>🎮</span>
+            </div>
+            <div class="cuadro-juego-largo" onclick="abrirMinijuego(2)">
+                <span>💾 Laberinto con Virus (30 Fases)</span>
+                <span>👾</span>
+            </div>
+            <div class="cuadro-juego-largo" onclick="abrirMinijuego(3)">
+                <span>🎈 Inflar Globos (Precisión)</span>
+                <span>🎯</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE TIENDA 🏬 -->
+    <div id="pantalla-tienda" class="screen">
+        <h2>🏬 Tienda Embrujada 🎃</h2>
+        <div class="contador-boletos-menu" style="margin-bottom: 10px;">🎟️ Tus Boletos: <span id="lbl-boletos-tienda">0</span></div>
+        
+        <div class="tienda-container" id="contenedor-items-tienda">
+            <!-- Se llena dinámicamente -->
+        </div>
+
+        <div id="seccion-retiro" style="width: 100%; max-width: 380px;">
+            <button class="btn-retirarse" onclick="retirarseJuego()">Quiero retirarme ya compré mucho y reclamo todo esto</button>
+            <p style="font-size: 0.65em; color: #a1a1aa; margin-top: 4px;">Al retirarte cerrarás el arcade y guardarás tus premios definitivos.</p>
+        </div>
+
+        <button class="mg-btn-salir" style="background:#3b82f6; margin-top: 10px;" onclick="cerrarTienda()">⬅️ Volver al Menú</button>
+    </div>
+
+    <!-- BURBUJA DE MENSAJES -->
+    <div class="burbuja" id="burbuja-mensaje"></div>
+
+    <!-- MINIJUEGO 1: MEMORIA DE COLORES (25 RONDAS) -->
+    <div id="mg-1" class="minijuego-panel">
+        <h3>🌈 Memoria de Colores (+5 🎟️ por ronda)</h3>
+        <div id="mg1-estado" style="font-size: 1.1em; margin-bottom: 8px;">Ronda: 1/25</div>
+        <div id="mg1-pantalla" style="background:#18181b; border:2px solid #7c3aed; width:240px; height:65px; display:flex; align-items:center; justify-content:center; font-size:1.8em; border-radius:8px; margin-bottom:15px;">Observa</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:280px;">
+            <div class="circulo-col" data-color="green" onclick="mg1Tocar('green')"></div>
+            <div class="circulo-col" data-color="orange" onclick="mg1Tocar('orange')"></div>
+            <div class="circulo-col" data-color="blue" onclick="mg1Tocar('blue')"></div>
+            <div class="circulo-col" data-color="red" onclick="mg1Tocar('red')"></div>
+            <div class="circulo-col" data-color="yellow" onclick="mg1Tocar('yellow')"></div>
+            <div class="circulo-col" data-color="brown" onclick="mg1Tocar('brown')"></div>
+            <div class="circulo-col" data-color="black" onclick="mg1Tocar('black')"></div>
+            <div class="circulo-col" data-color="white" onclick="mg1Tocar('white')"></div>
+        </div>
+        <button class="mg-btn-salir" onclick="cerrarMinijuegos()">Terminar y cobrar boletos</button>
+    </div>
+
+    <!-- MINIJUEGO 2: LABERINTO CON VIRUS (30 FASES) -->
+    <div id="mg-2" class="minijuego-panel">
+        <h3>💾 Laberinto (Fase <span id="mg4-fase-num">1</span>/30) [+4 🎟️ por fase]</h3>
+        <p style="font-size: 0.8em; margin: 2px 0;">Mueve el archivo 💾 hasta la salida 🏁 esquivando al virus 👾</p>
+        <div class="laberinto-grid" id="laberinto-container"></div>
+        <div style="display: grid; grid-template-columns: repeat(3, 45px); gap: 5px; margin-top: 5px;">
+            <div></div><button class="t-btn" onclick="moverJugadorLab('UP')">🔼</button><div></div>
+            <button class="t-btn" onclick="moverJugadorLab('LEFT')">◀️</button>
+            <button class="t-btn" onclick="moverJugadorLab('DOWN')">🔽</button>
+            <button class="t-btn" onclick="moverJugadorLab('RIGHT')">▶️</button>
+        </div>
+        <button class="mg-btn-salir" style="margin-top:10px;" onclick="cerrarMinijuegos()">Terminar y cobrar boletos</button>
+    </div>
+
+    <!-- MINIJUEGO 3: INFLAR GLOBOS (BARRA DE PRECISIÓN 2:30 min) -->
+    <div id="mg-3" class="minijuego-panel">
+        <h3>🎈 Inflar Globos (2:30 min) [+4 🎟️ cada 2s]</h3>
+        <div style="font-size: 0.85em; margin-bottom: 5px;">Tiempo: <b id="circo-tiempo">150</b>s</div>
+        
+        <div style="background:#18181b; width:300px; height:45px; border-radius:8px; position:relative; overflow:hidden; border:2px solid #7c3aed; margin:15px 0;">
+            <div id="barra-zona-verde" style="position:absolute; height:100%; background:rgba(16, 185, 129, 0.4); left:40px; width:60px;"></div>
+            <div id="barra-indicador" style="position:absolute; height:100%; background:#f8fafc; width:12px; left:0px;"></div>
+        </div>
+
+        <button class="t-btn" style="padding:15px 30px; font-size:1.1em; background:#f59e0b; color:black; font-weight:bold;" onmousedown="empezarPresionarBarra()" onmouseup="soltarPresionarBarra()" ontouchstart="empezarPresionarBarra()" ontouchend="soltarPresionarBarra()">¡MANTENER INFLANDO!</button>
+        <p style="font-size:0.75em; color:#a1a1aa; margin-top:8px;">Mantén presionado para atrapar la zona verde.</p>
+        
+        <button class="mg-btn-salir" onclick="cerrarMinijuegos()">Terminar y cobrar boletos</button>
+    </div>
+
+    <script>
+        // --- ESTADO GLOBAL Y PERSISTENCIA ---
+        let juegoEstado = {
+            boletos: 0,
+            retirado: false,
+            inventarioComprado: []
+        };
+
+        const catalogoPremios = [
+            { id: 1, nombre: "Huevo básico 🥚📦", precio: 650 },
+            { id: 2, nombre: "Huevo roto 🥚💔", precio: 990 },
+            { id: 3, nombre: "Huevo jubilado 🥚👴", precio: 1200 },
+            { id: 4, nombre: "Caja de bellota 📦🌰", precio: 2700 },
+            { id: 5, nombre: "Caja de conechoco 📦🍫", precio: 3790 },
+            { id: 6, nombre: "2 regalos pequeños 🎁🤏", precio: 450 },
+            { id: 7, nombre: "1 regalo mediano 🎁📦", precio: 500 }
+        ];
+
+        window.addEventListener('load', () => {
+            let guardado = localStorage.getItem('arcade_halloween_save');
+            if (guardado) {
+                juegoEstado = JSON.parse(guardado);
+            }
+            sincronizarMenu();
+        });
+
+        function guardarProgreso() {
+            localStorage.setItem('arcade_halloween_save', JSON.stringify(juegoEstado));
+        }
+
+        function sincronizarMenu() {
+            document.getElementById('lbl-boletos').innerText = juegoEstado.boletos;
+            document.getElementById('lbl-boletos-tienda').innerText = juegoEstado.boletos;
+        }
+
+        function mostrarBurbuja(texto, duracion = 3500) {
+            const burbuja = document.getElementById('burbuja-mensaje');
+            burbuja.innerText = texto;
+            burbuja.style.display = 'block';
+            setTimeout(() => { burbuja.style.display = 'none'; }, duracion);
+        }
+
+        function cerrarMinijuegos() {
+            document.querySelectorAll('.minijuego-panel').forEach(p => p.style.display = 'none');
+            if (window.intervaloLaberinto) clearInterval(window.intervaloLaberinto);
+            if (window.intervaloBarraCirco) clearInterval(window.intervaloBarraCirco);
+            sincronizarMenu();
+            guardarProgreso();
+        }
+
+        function abrirMinijuego(num) {
+            if (juegoEstado.retirado) {
+                mostrarBurbuja("Ya te has retirado del arcade con tus premios finales.");
+                return;
+            }
+            document.querySelectorAll('.minijuego-panel').forEach(p => p.style.display = 'none');
+            document.getElementById(`mg-${num}`).style.display = 'flex';
+
+            if (num === 1) iniciarMG1();
+            if (num === 2) iniciarMG2();
+            if (num === 3) iniciarMG3();
+        }
+
+        // --- TIENDA ---
+        function abrirTienda() {
+            renderizarTienda();
+            document.getElementById('pantalla-menu').classList.remove('active-screen');
+            document.getElementById('pantalla-tienda').classList.add('active-screen');
+            sincronizarMenu();
+        }
+
+        function cerrarTienda() {
+            document.getElementById('pantalla-tienda').classList.remove('active-screen');
+            document.getElementById('pantalla-menu').classList.add('active-screen');
+            sincronizarMenu();
+        }
+
+        function renderizarTienda() {
+            let cont = document.getElementById('contenedor-items-tienda');
+            cont.innerHTML = "";
+
+            if (juegoEstado.retirado) {
+                cont.innerHTML = `<h3 style="color:#10b981;">📦 Tus Premios Reclamados:</h3>`;
+                if (juegoEstado.inventarioComprado.length === 0) {
+                    cont.innerHTML += `<p style="font-size:0.8em; color:#a1a1aa;">No compraste ningún artículo.</p>`;
+                } else {
+                    juegoEstado.inventarioComprado.forEach(item => {
+                        cont.innerHTML += `<div class="item-tienda"><span>✔ ${item}</span></div>`;
+                    });
+                }
+                document.getElementById('seccion-retiro').style.display = 'none';
+                return;
+            }
+
+            catalogoPremios.forEach(premio => {
+                let div = document.createElement('div');
+                div.className = 'item-tienda';
+                div.innerHTML = `
+                    <span><b>${premio.nombre}</b><br><small style="color:#f59e0b;">${premio.precio} 🎟️</small></span>
+                    <button class="btn-comprar" onclick="comprarItem(${premio.id})">Comprar</button>
+                `;
+                cont.appendChild(div);
+            });
+        }
+
+        function comprarItem(id) {
+            let premio = catalogoPremios.find(p => p.id === id);
+            if (juegoEstado.boletos >= premio.precio) {
+                juegoEstado.boletos -= premio.precio;
+                juegoEstado.inventarioComprado.push(premio.nombre);
+                sincronizarMenu();
+                renderizarTienda();
+                guardarProgreso();
+                mostrarBurbuja(`¡Compraste ${premio.nombre} con éxito!`);
+            } else {
+                mostrarBurbuja("No tienes suficientes boletos 🎟️.");
+            }
+        }
+
+        function retirarseJuego() {
+            if (confirm("¿Estás seguro de retirarte? Ya no podrás jugar ni comprar más; te quedarás con lo comprado.")) {
+                juegoEstado.retirado = true;
+                guardarProgreso();
+                renderizarTienda();
+                mostrarBurbuja("¡Te has retirado con éxito! Arcade finalizado.");
+            }
+        }
+
+
+        // --- MINIJUEGO 1: MEMORIA DE COLORES ---
+        let mg1Ronda = 1;
+        let mg1Paso = 0;
+        let mg1Bloqueo = true;
+        let mg1SecuenciaActual = [];
+        const patronMaster25 = [
+            ['red'], ['red','yellow'], ['red','yellow','brown'], ['red','yellow','brown','blue'],
+            ['red','yellow','brown','blue','black'], ['red','yellow','brown','blue','black','brown'],
+            ['red','yellow','brown','blue','black','brown','white'], ['red','yellow','brown','blue','black','brown','white','red'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue'], ['red','yellow','brown','blue','black','brown','white','red','blue','white'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black'], ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown'], ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red'], ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow'], ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white','red'], ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white','red','red'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white','red','red','yellow'], ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white','red','red','yellow'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white','red','red','yellow','yellow'], ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white','red','red','yellow','yellow','blue'],
+            ['red','yellow','brown','blue','black','brown','white','red','blue','white','black','black','brown','yellow','red','blue','yellow','white','red','red','yellow','yellow','blue','white']
+        ];
+
+        function iniciarMG1() {
+            mg1Ronda = 1;
+            mg1IniciarRonda();
+        }
+
+        function mg1IniciarRonda() {
+            mg1Paso = 0;
+            mg1Bloqueo = true;
+            document.getElementById('mg1-estado').innerText = `Ronda: ${mg1Ronda}/25`;
+            mg1SecuenciaActual = patronMaster25[mg1Ronda - 1];
+            
+            let i = 0;
+            let inter = setInterval(() => {
+                document.getElementById('mg1-pantalla').innerHTML = `<div class="circulo-col" data-color="${mg1SecuenciaActual[i]}" style="width:30px; height:30px;"></div>`;
+                i++;
+                if (i >= mg1SecuenciaActual.length) {
+                    clearInterval(inter);
+                    setTimeout(() => {
+                        document.getElementById('mg1-pantalla').innerHTML = "¡Tu turno!";
+                        mg1Bloqueo = false;
+                    }, 500);
+                }
+            }, 600);
+        }
+
+        function mg1Tocar(col) {
+            if (mg1Bloqueo) return;
+            if (col === mg1SecuenciaActual[mg1Paso]) {
+                mg1Paso++;
+                if (mg1Paso === mg1SecuenciaActual.length) {
+                    juegoEstado.boletos += 5; // +5 boletos por ronda ganada
+                    sincronizarMenu();
+                    guardarProgreso();
+                    mg1Ronda++;
+                    if (mg1Ronda <= 25) {
+                        document.getElementById('mg1-pantalla').innerHTML = "✅ (+5 🎟️)";
+                        mg1Bloqueo = true;
+                        setTimeout(mg1IniciarRonda, 900);
+                    } else {
+                        mostrarBurbuja("🏆 ¡Memoria 25/25 completada!");
+                        cerrarMinijuegos();
+                    }
+                }
+            } else {
+                mg1Ronda = Math.max(1, mg1Ronda - 2);
+                document.getElementById('mg1-pantalla').innerHTML = "❌ (-2 rondas)";
+                mg1Bloqueo = true;
+                setTimeout(mg1IniciarRonda, 1200);
+            }
+        }
+
+
+        // --- MINIJUEGO 2: LABERINTO CON VIRUS (30 FASES) ---
+        let labFase = 1;
+        let labJugadorX = 0, labJugadorY = 0;
+        let labVirusX = 7, labVirusY = 7;
+        let labSalidaX = 7, labSalidaY = 7;
+        let mapaLaberinto = [];
+
+        function iniciarMG2() {
+            labFase = 1;
+            cargarFaseLaberinto();
+        }
+
+        function generarLaberintoAleatorio(fase) {
+            let mapa = [];
+            let densidad = Math.min(0.4, 0.15 + (fase * 0.008)); // Más denso conforme avanza hasta 30
+            for (let y = 0; y < 8; y++) {
+                let fila = [];
+                for (let x = 0; x < 8; x++) {
+                    if ((x === 0 && y === 0) || (x === 7 && y === 7)) {
+                        fila.push(0);
+                    } else {
+                        fila.push(Math.random() < densidad ? 1 : 0);
+                    }
+                }
+                mapa.push(fila);
+            }
+            return mapa;
+        }
+
+        function cargarFaseLaberinto() {
+            document.getElementById('mg4-fase-num').innerText = labFase;
+            mapaLaberinto = generarLaberintoAleatorio(labFase);
+            labJugadorX = 0; labJugadorY = 0;
+            labVirusX = 7; labVirusY = 7;
+            renderLaberinto();
+
+            if (window.intervaloLaberinto) clearInterval(window.intervaloLaberinto);
+            // Velocidad aumenta hasta la fase 5 y de ahí se mantiene fija
+            let velocidadVirus = labFase === 1 ? 2200 : (labFase === 2 ? 1800 : (labFase === 3 ? 1500 : (labFase === 4 ? 1200 : 1000)));
+            window.intervaloLaberinto = setInterval(moverVirusLab, velocidadVirus);
+        }
+
+        function renderLaberinto() {
+            const cont = document.getElementById('laberinto-container');
+            cont.innerHTML = '';
+            for (let y = 0; y < 8; y++) {
+                for (let x = 0; x < 8; x++) {
+                    let cel = document.createElement('div');
+                    cel.className = 'lab-celda';
+                    if (mapaLaberinto[y][x] === 1) cel.classList.add('lab-pared');
+                    if (x === labJugadorX && y === labJugadorY) cel.innerHTML = '💾';
+                    else if (x === labVirusX && y === labVirusY) cel.innerHTML = '👾';
+                    else if (x === labSalidaX && y === labSalidaY) cel.innerHTML = '🏁';
+                    cont.appendChild(cel);
+                }
+            }
+        }
+
+        function moverJugadorLab(dir) {
+            let nx = labJugadorX, ny = labJugadorY;
+            if (dir === 'UP') ny--;
+            if (dir === 'DOWN') ny++;
+            if (dir === 'LEFT') nx--;
+            if (dir === 'RIGHT') nx++;
+
+            if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8 && mapaLaberinto[ny][nx] === 0) {
+                labJugadorX = nx;
+                labJugadorY = ny;
+                chequearColisionLab();
+                renderLaberinto();
+            }
+        }
+
+        function moverVirusLab() {
+            if (labVirusX < labJugadorX) labVirusX++;
+            else if (labVirusX > labJugadorX) labVirusX--;
+            if (labVirusY < labJugadorY) labVirusY++;
+            else if (labVirusY > labJugadorY) labVirusY--;
+            chequearColisionLab();
+            renderLaberinto();
+        }
+
+        function chequearColisionLab() {
+            if (labJugadorX === labVirusX && labJugadorY === labVirusY) {
+                mostrarBurbuja("❌ ¡El virus te atrapó! Reiniciando fase.");
+                cargarFaseLaberinto();
+            } else if (labJugadorX === labSalidaX && labJugadorY === labSalidaY) {
+                juegoEstado.boletos += 4; // +4 boletos por fase superada
+                sincronizarMenu();
+                guardarProgreso();
+
+                if (labFase < 30) {
+                    labFase++;
+                    mostrarBurbuja(`¡Fase superada! +4 🎟️ (Avanzando a fase ${labFase})`);
+                    cargarFaseLaberinto();
+                } else {
+                    clearInterval(window.intervaloLaberinto);
+                    mostrarBurbuja("🏆 ¡Has completado las 30 fases del laberinto!");
+                    cerrarMinijuegos();
+                }
+            }
+        }
+
+
+        // --- MINIJUEGO 3: INFLAR GLOBOS (BARRA DE PRECISIÓN 2:30 min) ---
+        let circoTiempo = 150; // 2 minutos y 30 segundos
+        let indicadorX = 0;
+        let zonaVerdeInicio = 40;
+        let presionandoBoton = false;
+
+        function iniciarMG3() {
+            circoTiempo = 150;
+            document.getElementById('circo-tiempo').innerText = circoTiempo;
+
+            if (window.intervaloBarraCirco) clearInterval(window.intervaloBarraCirco);
+            window.intervaloBarraCirco = setInterval(bucleJuegoCirco, 50);
+
+            // Zona verde cambia cada 10 segundos
+            if (window.intervaloZonaVerde) clearInterval(window.intervaloZonaVerde);
+            window.intervaloZonaVerde = setInterval(() => {
+                zonaVerdeInicio = Math.floor(Math.random() * 200);
+                let zV = document.getElementById('barra-zona-verde');
+                if(zV) zV.style.left = zonaVerdeInicio + 'px';
+            }, 10000);
+
+            // +4 tickets cada 2 segundos si se mantiene en zona verde
+            if (window.intervaloTicketCirco) clearInterval(window.intervaloTicketCirco);
+            window.intervaloTicketCirco = setInterval(() => {
+                if (presionandoBoton) {
+                    let ind = indicadorX;
+                    if (ind >= zonaVerdeInicio && ind <= zonaVerdeInicio + 60) {
+                        juegoEstado.boletos += 4;
+                        sincronizarMenu();
+                        guardarProgreso();
+                    }
+                }
+            }, 2000);
+
+            if (window.intervaloTiempoCirco) clearInterval(window.intervaloTiempoCirco);
+            window.intervaloTiempoCirco = setInterval(() => {
+                circoTiempo--;
+                let cT = document.getElementById('circo-tiempo');
+                if(cT) cT.innerText = circoTiempo;
+                if (circoTiempo <= 0) cerrarMinijuegos();
+            }, 1000);
+        }
+
+        function empezarPresionarBarra() { presionandoBoton = true; }
+        function soltarPresionarBarra() { presionandoBoton = false; }
+
+        function bucleJuegoCirco() {
+            if (presionandoBoton) indicadorX -= 4;
+            else indicadorX += 4;
+            if (indicadorX < 0) indicadorX = 0;
+            if (indicadorX > 288) indicadorX = 288;
+            let indEl = document.getElementById('barra-indicador');
+            if(indEl) indEl.style.left = indicadorX + 'px';
+        }
+    </script>
+</body>
+</html>
